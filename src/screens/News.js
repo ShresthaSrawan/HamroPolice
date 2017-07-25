@@ -1,21 +1,12 @@
-import {Text, Platform, ScrollView, View} from 'react-native';
 import React, {Component} from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {StackNavigator, TabNavigator} from 'react-navigation';
-import Alerts from './Alerts';
-import Lost from './Lost';
-import Missing from './Missing';
-import Wanted from './Wanted';
-import CustomTabBar from '../components/CustomTabBar';
 import Utils from './../Utils';
 import {autobind} from 'core-decorators';
-import {Avatar, List, ListItem} from 'react-native-elements';
 import Loader from '../components/Loader';
 import Article from './Article';
-import SingleArticle from './SingleArticle';
 
 @autobind
-class NewsScreen extends Component {
+export default class News extends Component {
     static navigationOptions = (props) => {
         return {
             title: 'News',
@@ -47,26 +38,3 @@ class NewsScreen extends Component {
             return <Loader />
     }
 }
-
-const NewsTabs = TabNavigator({
-    News: {screen: NewsScreen},
-    Alerts: {screen: Alerts},
-    Lost: {screen: Lost},
-    Missing: {screen: Missing},
-    Wanted: {screen: Wanted},
-},{
-    tabBarPosition: 'top',
-    tabBarOptions: {
-        scrollEnabled: true
-    }
-});
-
-const NewsNavigator = StackNavigator({
-    NewsTabs: {screen: NewsTabs},
-    SingleArticle: {
-        path: 'article/:id',
-        screen: SingleArticle
-    }
-});
-
-export default NewsNavigator;

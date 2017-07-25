@@ -7,15 +7,20 @@ import {Text,ScrollView, View, Alert} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {FormInput,FormLabel,FormValidationMessage} from 'react-native-elements';
 import Utils from '../Utils';
-import Header from "../components/Header";
+import {StackNavigator} from 'react-navigation';
 
 @autobind
-export default class Report extends Component {
-    static navigationOptions =  {
-        drawerLabel: 'Complaint',
-        drawerIcon: ({ tintColor }) => (
-            <Icon name='forum' size={25} />
-        )
+class ReportScreen extends Component {
+    static navigationOptions = (props) => {
+        return {
+            title: 'Report',
+            headerLeft: <Icon name='arrow-back' onPress={() => props.navigation.navigate('Home')} size={25} />,
+            headerMode: 'float',
+            drawerLabel: 'Report',
+            drawerIcon: ({tintColor}) => (
+                <Icon name='forum' size={25} />
+            )
+        }
     };
 
     constructor(props) {
@@ -31,12 +36,18 @@ export default class Report extends Component {
             imageSources: []
         };
 
-        navigator.geolocation.getCurrentPosition(({coords})=> {
-            this.setState({
-                longitude: coords.longitude,
-                latitude: coords.latitude
-            });
-        });
+        navigator.geolocation.getCurrentPosition(
+            ({coords})=> {
+                console.log('location fetched ', coords);
+                this.setState({
+                    longitude: coords.longitude,
+                    latitude: coords.latitude
+                });
+            },(error) => {
+                console.log('location fetching error ::: ', error);
+            },
+            {enableHighAccuracy: true, timeout: 20000, maximumAge: 10000}
+        );
 
         this.store = this.props.screenProps.store;
     }
@@ -115,7 +126,6 @@ export default class Report extends Component {
 
     submitForm() {
         if(this.formValid()) {
-            console.log('submitting Form');
             this.store.sendReport(this.formData())
                 .then(response => {
                     Alert.alert(
@@ -127,7 +137,7 @@ export default class Report extends Component {
                         {onDismiss: () => this.props.navigation.navigate('Home')}
                     );
                 })
-                .catch(e=>console.log(e.response));
+                .catch(e=>Utils.dd(e));
         }
     }
 
@@ -136,7 +146,6 @@ export default class Report extends Component {
 
         return (
             <ScrollView>
-                <Header left={<Icon name='arrow-back' onPress={() => this.props.navigation.goBack()} size={25} />} title='Report' />
                 <View>
                     <FormLabel>Report Title</FormLabel>
                     <FormInput
@@ -181,3 +190,9 @@ const styles = {
         height: 150
     }
 };
+
+const Report = StackNavigator({
+    Report: { screen: ReportScreen}
+});
+
+export default Report;

@@ -1,12 +1,15 @@
 import React from 'react';
-import {Alert} from 'react-native';
-import store from 'react-native-simple-store';
 import axios from 'axios';
 import Utils from './Utils';
 import {observable} from 'mobx';
+import {Alert} from 'react-native';
 import {autobind} from 'core-decorators';
+import store from 'react-native-simple-store';
 
-const API_URL = 'http://hamropolice.featherwebs.com/api/';
+const API_URL = 'http://hamropolice.featherwebs.com/api';
+const MAIN_URL = 'http://hamropolice.featherwebs.com';
+const PHONE_NUMBER = '1000';
+const MESSAGE_NUMBER = '1000';
 
 @autobind
 export default class Store {
@@ -14,24 +17,27 @@ export default class Store {
     @observable user = null;
     @observable isAuthenticating = false;
     @observable api_token = null;
-    @observable tabView = false;
+    @observable phone_number = PHONE_NUMBER;
+    @observable message_number = MESSAGE_NUMBER;
 
     constructor() {
         this.authenticate();
+    }
+
+    setUser(user) {
+        this.user = user;
+        return store.save('user', user)
     }
 
     authenticate(user) {
         this.isAuthenticating = true;
         if(user)
         {
-            console.log('saving user');
-            store.save('user', user)
+            this.setUser(user)
                 .then(() => this.getApiToken(user));
         } else {
-            console.log('fetching user');
             store.get('user')
                 .then((user) => {
-                    console.log('user fetched', user);
                     if(user) {
                         this.getApiToken(user)
                     } else {
@@ -42,19 +48,20 @@ export default class Store {
     }
 
     getApiToken(user) {
-        console.log('fetching api token for user ' + user.name);
-        axios.post(API_URL+'login', user)
-            .then((response) => {
-                console.log(response.data.api_token);
-                this.api_token = response.data.api_token;
+        axios.post(`${API_URL}/login`, user)
+            .then(({data}) => {
+                let {user} = data;
+                this.api_token = user.api_token;
+                console.log(user.api_token);
+                // do not store token in local storage
+                user.token = null;
+                this.setUser(user);
                 this.isAuthenticated = true;
                 this.isAuthenticating = false;
-                this.user = user;
             })
             .catch(e => {
                 this.isAuthenticating = false;
-                Alert.alert('Connection Interrupted!', e.message, [{text: 'Ok', onPress: () => {}}]);
-                console.log(e);
+                Utils.dd(e);
             });
     }
 
@@ -82,7 +89,7 @@ export default class Store {
 
         data.append('api_token', this.api_token);
 
-        return axios.post(API_URL+'report', data, config);
+        return axios.post(`${API_URL}/report`, data, config);
     }
 
     sendComplaint(data) {
@@ -92,16 +99,75 @@ export default class Store {
 
         data.append('api_token', this.api_token);
 
-        return axios.post(API_URL+'complaint', data, config);
+        return axios.post(`${API_URL}/complaint`, data, config);
     }
 
     sendThank(data) {
         data.append('api_token', this.api_token);
 
-        return axios.post(API_URL+'thank', data);
+        return axios.post(`${API_URL}/thank`, data);
     }
 
-    toggleTabView() {
-        this.tabView = !this.tabView;
+    getStationList() {
+        return axios.get(`${API_URL}/station`, {
+            params: {
+                api_token: this.api_token
+            }
+        });
+    }
+
+    getThreads() {
+        return axios.get(`${API_URL}/thread`, {
+            params: {
+                api_token: this.api_token
+            }
+        });
+    }
+
+    getThread(id) {
+        return axios.get(`${API_URL}/thread/${id}`, {
+            params: {
+                api_token: this.api_token
+            }
+        });
+    }
+
+    sendMessage(id, data) {
+        data.append('api_token', this.api_token);
+
+        return axios.post(`${API_URL}/thread/${id}/message`, data);
+    }
+
+    createThread(data) {
+        data.append('api_token', this.api_token);
+
+        return axios.post(`${API_URL}/thread`, data);
+    }
+
+    updateProfile(data) {
+        data.append('api_token', this.api_token);
+
+        return axios.post(`${API_URL}/profile`, data);
+    }
+
+    getArticles(type) {
+        return axios.get(`${API_URL}/article`, {
+            params: {
+                type: type,
+                api_token: this.api_token
+            }
+        });
+    }
+
+    getArticle(id) {
+        return `${MAIN_URL}/article/${id}`;
+    }
+
+    getStation(id) {
+        return axios.get(`${API_URL}/station/${id}`, {
+            params: {
+                api_token: this.api_token
+            }
+        });
     }
 }

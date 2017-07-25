@@ -1,76 +1,50 @@
 import Store from './Store';
 import Utils from './Utils';
-import SOS from './screens/SOS';
-import {View} from 'react-native';
-import Home from './screens/Home';
-import Thank from './screens/Thank';
-import Thread from './screens/Thread';
-import Report from './screens/Report';
 import React, {Component} from 'react';
-import Traffic from './screens/Traffic';
-import Station from './screens/Station';
 import {autobind} from 'core-decorators';
 import Loader from './components/Loader';
-import Register from './screens/Register';
 import {observer} from 'mobx-react/native';
-import Complaint from './screens/Complaint';
-import {StackNavigator, DrawerNavigator, TabNavigator} from 'react-navigation';
-import News from "./screens/News";
-import Alerts from "./screens/Alerts";
-import Lost from "./screens/Lost";
-import Missing from "./screens/Missing";
-import Wanted from "./screens/Wanted";
-import Header from "./components/Header";
-import Icon from "react-native-vector-icons/MaterialIcons";
-
-const UnauthenticatedNavigator = StackNavigator({
-    SOS: {screen: SOS, navigationOptions: {header: null}},
-    Register: {screen: Register, navigationOptions: {header: null}},
-}, {mode: 'modal'});
-
-const MainNavigator = DrawerNavigator({
-    Home: {screen: Home},
-    Report: {screen: Report},
-    Complaint: {screen: Complaint},
-    Station: {screen: Station},
-    Thank: {screen: Thank},
-    Traffic: {screen: Traffic},
-    Thread: {screen: Thread},
-}, {
-    mode: 'modal'
-});
-
-const NewsNavigator = TabNavigator({
-    News: {screen: News},
-    Alerts: {screen: Alerts},
-    Lost: {screen: Lost},
-    Missing: {screen: Missing},
-    Wanted: {screen: Wanted},
-}, {
-    mode: 'modal'
-});
+import {View, Platform} from 'react-native';
+import MainNavigator from './navigators/MainNavigator';
+import DeviceInfo from 'react-native-device-info';
+import UnauthenticatedNavigator from './navigators/UnauthenticatedNavigator';
 
 @autobind @observer
 export default class App extends Component {
     constructor(props) {
         super(props);
+
+        // remove yellow warning box
         console.disableYellowBox = true;
+
         this.state = {
             isOpen: false
         };
+        console.log('Device Unique ID', DeviceInfo.getUniqueID());
+        console.log('Device Manufacturer', DeviceInfo.getManufacturer());
+        console.log('Device Brand', DeviceInfo.getBrand());
+        console.log('Device Model', DeviceInfo.getModel());
+        console.log('Device ID', DeviceInfo.getDeviceId());
+        console.log('System Name', DeviceInfo.getSystemName());
+        console.log('System Version', DeviceInfo.getSystemVersion());
+        console.log('Bundle ID', DeviceInfo.getBundleId());
+        console.log('Build Number', DeviceInfo.getBuildNumber());
+        console.log('App Version', DeviceInfo.getVersion());
+        console.log('App Version (Readable)', DeviceInfo.getReadableVersion());
+        console.log('Device Name', DeviceInfo.getDeviceName());
+        console.log('User Agent', DeviceInfo.getUserAgent());
+        console.log('Device Locale', DeviceInfo.getDeviceLocale());
+        console.log('Device Country', DeviceInfo.getDeviceCountry());
+        console.log('Timezone', DeviceInfo.getTimezone());
+        console.log('App Instance ID', DeviceInfo.getInstanceID());
+        console.log('IsEmulator', DeviceInfo.isEmulator());
+        console.log('isTablet', DeviceInfo.isTablet());
         this.store = new Store();
     }
 
     returnRelevantNavigator() {
-        if(this.store.isAuthenticated) {
-            if(this.store.tabView) {
-                return <View style={{ flex: 1 }}>
-                    <Header left={<Icon name='arrow-back' onPress={() => this.store.toggleTabView()} size={25} />} title='News & Shit' />
-                    <NewsNavigator screenProps={{store: this.store}} />
-                </View>;
-            } else {
-                return <MainNavigator screenProps={{store: this.store}} />
-            }
+        if (this.store.isAuthenticated) {
+            return <MainNavigator screenProps={{store: this.store}} />
         } else {
             return <UnauthenticatedNavigator screenProps={{store: this.store}} />
         }

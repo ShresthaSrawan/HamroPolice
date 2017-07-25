@@ -2,28 +2,34 @@ import Menu from '../components/Menu';
 import React, {Component} from 'react';
 import {autobind} from 'core-decorators';
 import Navbar from './../components/Navbar';
-import Header from './../components/Header';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {Text, View, ScrollView, TouchableHighlight, NativeModules} from 'react-native';
 import {Card, Grid, Col, SideMenu} from 'react-native-elements';
+import {StackNavigator} from 'react-navigation';
 
 @autobind
-export default class Home extends Component {
+class HomeScreen extends Component {
 
     constructor(props) {
         super(props);
         this.store = this.props.screenProps.store;
+        this.navigation = this.props.navigation;
     }
 
-    static navigationOptions =  {
-        drawerLabel: 'Home',
-        drawerIcon: ({ tintColor }) => (
-            <Icon name='home' size={25} />
-        )
+    static navigationOptions = (props) => {
+        return {
+            title: 'Home',
+            headerLeft: <Icon name='menu' onPress={() => props.navigation.navigate('DrawerOpen')} size={25} />,
+            headerMode: 'float',
+            drawerLabel: 'Home',
+            drawerIcon: ({ tintColor }) => (
+                <Icon name='home' size={25} />
+            )
+        }
     };
 
     handleCardClick(card) {
-        this.props.navigation.navigate(card);
+        this.navigation.navigate(card);
     }
 
     render() {
@@ -32,7 +38,6 @@ export default class Home extends Component {
         return (
             <View style={container}>
                 <ScrollView>
-                    <Header left={<Icon name='menu' onPress={() => this.props.navigation.navigate('DrawerOpen')} size={25} />} title='Home' />
                     <Grid>
                         <Col>
                             <TouchableHighlight
@@ -110,7 +115,7 @@ export default class Home extends Component {
                         </Col>
                         <Col>
                             <TouchableHighlight
-                                onPress={() => this.handleCardClick('Thread')}
+                                onPress={() => this.handleCardClick('ThreadList')}
                                 underlayColor='transparent'
                             >
                                 <View>
@@ -125,7 +130,7 @@ export default class Home extends Component {
                         </Col>
                     </Grid>
                 </ScrollView>
-                <Navbar store={this.store} />
+                <Navbar store={this.store} navigation={this.navigation} />
             </View>
         );
     }
@@ -139,3 +144,9 @@ const styles = {
         textAlign: 'center'
     }
 };
+
+const Home = StackNavigator({
+    Home: { screen: HomeScreen}
+});
+
+export default Home;
